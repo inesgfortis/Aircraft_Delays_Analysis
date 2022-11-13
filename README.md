@@ -10,4 +10,4 @@ El gobierno de EEUU quiere que las multas a la aerolíneas sean directamente pro
 
 ¿Qué recomendaciones basadas en los resultados históricos se podría dar a las aerolíneas para minimizar las pérdidas en los trayectos?
 
-**Enlace a los datos: https://www.kaggle.com/code/abdurrehmankhalid/airplane-dataset-analysis/data**
+**Enlace a los datos: https://www.kaggle.com/datasets/usdot/flight-delays?select=flights.csv**
