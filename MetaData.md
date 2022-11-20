@@ -21,7 +21,7 @@
 * SCHEDULED_TIME: Planned time amount needed for the flight trip 
 * ELAPSED_TIME: Actual flight trip duration (AirTime + TaxiIn + TaxiOut)
 * AIR_TIME: The time duration between wheels_off and wheels_on time
-* DISTANCE: Distance between two airports
+* DISTANCE: Distance between two airports in miles
 * WHEELS_ON: the actual time of departure where operations is concerned.
 * TAXI_IN: The time duration elapsed between wheels-on and gate arrival at the destination airport
 * SCHEDULED_ARRIVAL: Planned Arrival Time 
