@@ -43,6 +43,7 @@ app.layout = dbc.Container(id = "main",
                     [
                         dbc.Tab(label="Airports", tab_id="tab_airports"),
                         dbc.Tab(label="Prediction", tab_id="tab_forecast"),
+                        dbc.Tab(label="Fines", tab_id="tab_fines"),
                     ],
                     id="tabs",
                     active_tab="tab_forecast",
@@ -73,34 +74,33 @@ controls_forecast = dbc.Card(
                 dbc.Label("Airports"),
                 dcc.Dropdown(
                     id="airport",
-                    # options=[
-                    #     {"label": col, "value": col} for col in iris.columns
-                    # ],
                     options =[
-
                         {"label": airport, "value": airport} for airport in list(data_forecast['ORIGIN_AIRPORT'].unique())
                     ],
-                    value="select an airport",
+                    # Inicialización por defecto:
+                    value=str(airports_forecast[0]),
                 ),
             ]
         ),
-        html.Div(id="airlines-forecast",
-            children =[
-                dbc.Label("Airlines"),
-                dcc.Dropdown(
-                    id="airline",
-                    options = ['American Airlines','South West'],
-                    value="select an airline",
-                ),
-            ]
-        ),
+        # html.Div(id="airlines-forecast",
+        #     children =[
+        #         dbc.Label("Airlines"),
+        #         dcc.Dropdown(
+        #             id="airline",
+        #             options = ['American Airlines','South West'],
+        #             value="select an airline",
+        #         ),
+        #     ]
+        # ),
         html.Div(id="fechas-forecast",
             children = [
                 dbc.Label("Start date"),
                 dcc.DatePickerRange(
                     month_format='MMMM Y',
                     end_date_placeholder_text='DD/MM/YY',
+                    # Fechas por defecto
                     start_date=date(2016, 1, 1),
+                    end_date=date(2016, 1, 15),
                     id="picker-fechas"
                 )
             ]
@@ -126,22 +126,29 @@ forecast_content = [
 ]
 
 
+# Fine tab content 
+tab_fines = []
+
+
+
 ########################################################################################################################
 # FUNCTIONS
 ########################################################################################################################
 
 def filter_forecast(airport):
     # Recibe un aeropuerto de origen y devuelve el dataframe y modelo corresondiente a dicho aeropuerto
-    print("airport = "+str(airport))
-    print("airport_forecast = "+ str(airports_forecast[0]))
+    
+    # print(airport)
+
+    # if airport == 'select an airport':
+    #     print("vacio")
+    #     airport = str(airports_forecast[0])
+    #     print(airport)
+
 
     data_df = data_forecast[data_forecast['ORIGIN_AIRPORT'] == airport]
 
-    print("Condition :" + str(str(airport) == str(airports_forecast[0])))
-    #== str(airports_forecast[0])
-
     if str(airport) == str(airports_forecast[0]):
-
         return data_df, modelo_forecast_1
     elif str(airport) == str(airports_forecast[1]):
         return data_df, modelo_forecast_2
@@ -152,20 +159,18 @@ def filter_forecast(airport):
     elif str(airport) == str(airports_forecast[4]):
         return data_df, modelo_forecast_5
     else:
-        print("problemas")
         return pd.DataFrame(),None
 
 
 
 def graph_figure_forecast(data,model,start_date,end_date):
-    print(data.columns)
+
     start_date = pd.to_datetime(start_date,format = "%Y-%m-%d")
     end_date = pd.to_datetime(end_date,format = "%Y-%m-%d")
 
     #predicciones
     pred_days = (end_date - start_date).days+1
     predictions = model.predict(start=len(data),end=(len(data)-1)+pred_days,typ = 'levels').rename('Forecast')
-    #print("predictions: "+predictions)
 
     data_pred = pd.DataFrame()
     data_pred['ds'] = [start_date+timedelta(days=d) for d in range((end_date - start_date).days +1)] 
@@ -188,6 +193,7 @@ def graph_figure_forecast(data,model,start_date,end_date):
     return fig
 
 ########################################################################################################################
+# Callbacks
 ########################################################################################################################
 
 #callback para seleccionar contenido tabs
@@ -207,6 +213,8 @@ def get_tab_content(active_tab):
             return airports_content
         elif active_tab == "tab_forecast":
             return forecast_content
+        elif active_tab == "tab_fines":
+            return tab_fines
     return "No tab selected"
 
 #callback para seleccionar modelo y predecir devolviendo el gráfico de forecast
@@ -229,6 +237,9 @@ def update_forecast_graph(airport,start_date,end_date):
 
     return go.Figure()
 
+
+########################################################################################################################
+########################################################################################################################
 
 if __name__ == '__main__':
     app.run_server(debug=True)
