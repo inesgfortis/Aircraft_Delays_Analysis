@@ -1,19 +1,7 @@
 # Importamos las librerias mínimas necesarias
-import pandas as pd
-import numpy as np
-import pickle
-import os
-
-import plotly.graph_objects as go
 import dash
-from dash import Input, Output, dcc, html, State
-from datetime import date,datetime, timedelta
-
+from dash import html
 import dash_bootstrap_components as dbc
-import plotly.express as px
-import logging
-from plotly.subplots import make_subplots
-
 
 ## App
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.LUX], use_pages=True)
@@ -38,9 +26,7 @@ app.layout = dbc.Container(
         ),
 
         html.Div(dash.page_container),
-    ]
-)
-
+    ],fluid=True)
 
 ########################################################################################################################
 ########################################################################################################################

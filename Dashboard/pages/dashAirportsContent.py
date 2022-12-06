@@ -63,12 +63,12 @@ layout = [
                 dcc.Graph(id='bar-main',
                       style={'height':500}),
             ], width={'size': 7, 'offset': 0, 'order': 1}),
-        dbc.Col([  # second column on third row
-                html.H5('Filters', className='text-center'),
-                dbc.Label("Date"),
-                dcc.RangeSlider(1, 12, 1, marks=MONTH, value=[1,12], id="range-slider-main"),
-                html.Hr(),
-            ], width={'size': 5, 'offset': 0, 'order': 2}) 
+            dbc.Col([  # second column on third row
+                    html.H5('Filters', className='text-center'),
+                    dbc.Label("Date"),
+                    dcc.RangeSlider(1, 12, 1, marks=MONTH, value=[1,12], id="range-slider-main"),
+                    html.Hr(),
+                ], width={'size': 5, 'offset': 0, 'order': 2}) 
         ]),  # end of third row  
     ]
  
@@ -105,7 +105,7 @@ def update_map(value):
                 <br><sup>Size indicates the number of departing flights</sup>\
                 <sup>Maintain the mouse in an airport to obtain its full information</sup>",
         legend_title="Causa del Retraso")
-
+        
     return fig_map
     
 @callback(

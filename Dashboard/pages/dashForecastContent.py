@@ -35,6 +35,7 @@ dash.register_page(__name__, name = "Forecast")
 
 
 layout = [
+    dbc.Row(dbc.Col(html.H2('FORECASTED DELAYED FLIGHTS', className='text-center text-primary, mb-3'))),
     dbc.Row(
         [
             # Filtro aeropuerto
