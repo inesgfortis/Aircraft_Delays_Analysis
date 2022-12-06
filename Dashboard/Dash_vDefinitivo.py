@@ -52,9 +52,9 @@ data_fines = pd.read_parquet(str(os.getcwd())+"\\AirlinesAnalysis\\dataFines.par
 airlines_list = list(data_fines['AIRLINE'].unique())
 
 ## App
-app = dash.Dash(external_stylesheets=[dbc.themes.LUX])
+app = dash.Dash("main",external_stylesheets=[dbc.themes.LUX])
 
-app.layout = dbc.Container(id = "main",
+app.layout = dbc.Container(
     children = [
         html.Br(),
         html.H1("US AIR TRAFFIC"),
@@ -156,6 +156,10 @@ forecast_content = [
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Airlines tab content
+
+# New airlines content: 
+# Importar dash_airlines.py
+
 airlines_content = [
     
     dbc.Row(
@@ -469,6 +473,7 @@ def get_tab_content(active_tab):
 @app.callback(
     Output('map-main', 'figure'),
     [Input("range-slider-main", "value")])
+
 def update_map(value):    
     dff = df[df["DATE"].dt.month.isin(list(range(value[0],value[1]+1)))]
     df_map = dff[variables_strictly_needed].groupby(variables_to_group_by).mean()
@@ -499,6 +504,8 @@ def update_map(value):
     Output('pie-main', 'figure'),
     [Input('map-main', 'hoverData'),
     Input("range-slider-main", "value")])
+
+
 def update_pie(hoverdata, value):
     # Pie Chart
     airport = hoverdata['points'][0]['text']
@@ -535,6 +542,7 @@ def update_pie(hoverdata, value):
     Output('bar-main', 'figure'),
     [Input('map-main', 'hoverData'),
     Input("range-slider-main", "value")])
+
 def update_bar(hoverdata, value):    
     airport = hoverdata['points'][0]['text']
     df_dest = df[df["ORIGIN_AIRPORT"]==airport].groupby(variables_to_group_by2)[["ARRIVAL_DELAY"]].count()
@@ -571,7 +579,7 @@ def update_forecast_graph(airport,start_date,end_date):
 
     return go.Figure()
 
-
+#---------------------------------------------------------------------------------------------
 @app.callback(
     Output("graph-airline-traffic", "figure"),
     Input('airline', 'value'),
@@ -591,6 +599,7 @@ def update_airline_traffic_graph(airline,start_date,end_date):
 
     return go.Figure()
 
+#----------------------------------------------------------------------
 @app.callback(
     Output("graph-airline-delay", "figure"),
     Input('airline', 'value'),
