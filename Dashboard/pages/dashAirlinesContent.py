@@ -79,7 +79,7 @@ layout = [
                 dbc.Col(
                     [
                         html.P("Expected [30-60]min delayed flights"),
-                        dbc.Input(type="number", value =0, min=0, step=50, id="delayed-flighs-type-I",),
+                        dbc.Input(type="number", value =0, min=0, step=1, id="delayed-flighs-type-I",),
         
                     ],
 
@@ -89,7 +89,7 @@ layout = [
                 dbc.Col(
                     [
                         html.P("Expected [<1h] delayed flights"),
-                        dbc.Input(type="number", value =0,min=0,step=50,id="delayed-flighs-type-II"),
+                        dbc.Input(type="number", value =0,min=0,step=1,id="delayed-flighs-type-II"),
                     ],
                     
                 ),
