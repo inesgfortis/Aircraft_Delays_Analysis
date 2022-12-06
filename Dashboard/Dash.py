@@ -10,31 +10,20 @@ import logging
 from plotly.subplots import make_subplots
 
 # Leemos las bases de datos
+
 df = pd.read_parquet("Preprocessing/flightsFilteredCleaned.parquet")
+
 # df_flights = pd.read_parquet("../EDA/df_flights.parquet")
 # df_airports_date = pd.read_parquet("../EDA/df_airports_date.parquet")
 
-# Needed constants
+# Pie Chart
 delay_labels = ["AIR_SYSTEM_DELAY","SECURITY_DELAY","AIRLINE_DELAY","LATE_AIRCRAFT_DELAY","WEATHER_DELAY","OTHER_DELAY"]
-df_delayed = df[df["ARRIVAL_DELAY"]>0]
-df_delayed['MAIN_DELAY_CAUSE'] = df_delayed[delay_labels].idxmax(axis=1)
-variables_to_group_by = ["ORIGIN_AIRPORT","ORIGIN_AIRPORT_NAME","ORIGIN_CITY","ORIGIN_STATE"]
-variables_to_group_by2 = ["DESTINATION_CITY","DESTINATION_STATE","ORIGIN_AIRPORT"]
-variables_strictly_needed2 = ["AIR_SYSTEM_DELAY","SECURITY_DELAY","AIRLINE_DELAY","LATE_AIRCRAFT_DELAY","WEATHER_DELAY","OTHER_DELAY",
-                                "ARRIVAL_DELAY", "ORIGIN_AIRPORT"]
-variables_strictly_needed = ["ORIGIN_AIRPORT","ORIGIN_AIRPORT_NAME","ORIGIN_CITY","ORIGIN_STATE","ARRIVAL_DELAY","ORIGIN_LATITUDE","ORIGIN_LONGITUDE"]
-MONTH = {1: 'Janauary',
-		 2:'February',
-		 3:'March',
-		 4:'April',
-		 5:'May',
-		 6:'June',
-		 7:'July',
-		 8:'August',
-		 9:'September',
-		 10:'October',
-		 11:'November',
-		 12:'December'}
+i = 0
+values1 = df_airports[delay_labels].iloc[i]
+fig_pie = go.Figure()
+fig_pie.add_trace(go.Pie(labels=delay_labels, values=values1, direction ='clockwise', marker_colors=px.colors.qualitative.Vivid, hole=.3))
+fig_pie.update_layout(title_text="Average Delay Distribution by Airport", legend_title="Delay Cause", template="plotly_dark",
+                    legend=dict(orientation="h", y=-0.02, x =0.08))
 
 app = dash.Dash(external_stylesheets=[dbc.themes.LUX])
 
@@ -44,11 +33,11 @@ app.layout = dbc.Container(
         
         dbc.Row([  # start of second row
             dbc.Col([  # first column on second row
-                html.H5('Map', className='text-center'),
-                dcc.Graph(id='map-main',
-                        hoverData={"points": [{"text": "ATL"}]},
-                        style={'height':600}),
-                html.Hr(),
+            html.H5('Map', className='text-center'),
+            dcc.Graph(id='map-main',
+                      figure = fig_map,
+                      hoverData={"points": [{"text": "ATL"}]},
+                      style={'height':600}),
             ], width={'size': 7, 'offset': 0, 'order': 1}),  # width first column on second row
             dbc.Col([  # second column on third row
                 html.H5('Distribution', className='text-center'),
@@ -65,8 +54,8 @@ app.layout = dbc.Container(
             ], width={'size': 7, 'offset': 0, 'order': 1}),
         dbc.Col([  # second column on third row
                 html.H5('Filters', className='text-center'),
-                dbc.Label("Date"),
-                dcc.RangeSlider(1, 12, 1, marks=MONTH, value=[1,12], id="range-slider-main"),
+                dcc.Graph(id='filter-main',
+                      style={'height':500}),
                 html.Hr(),
             ], width={'size': 5, 'offset': 0, 'order': 2}) 
         ]),  # end of third row  
@@ -74,75 +63,36 @@ app.layout = dbc.Container(
 
 # callbacks
 @app.callback(
-    Output('map-main', 'figure'),
-    [Input("range-slider-main", "value")])
-def update_map(value):    
-    dff = df[df["DATE"].dt.month.isin(list(range(value[0],value[1]+1)))]
-    df_map = dff[variables_strictly_needed].groupby(variables_to_group_by).mean()
-    df_map["FLIGHTS"] = dff.groupby(variables_to_group_by).size()
-    df_map["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby(variables_to_group_by).size()
-    df_map["DELAYED_PERCENTAGE"] = df_map["DELAYED_FLIGHTS"]/df_map["FLIGHTS"]
-    df_map = df_map.reset_index() 
-
-    fig_map = px.scatter_geo(df_map, lat="ORIGIN_LATITUDE", lon = "ORIGIN_LONGITUDE",
-                        size= "FLIGHTS", # size of markers
-                        size_max= 30,
-                        color= "DELAYED_PERCENTAGE", # which column to use to set the color of markers
-                        scope="usa",
-                        text = "ORIGIN_AIRPORT",
-                        hover_data  = ["ORIGIN_CITY"],
-                        color_continuous_scale='RdYlGn_r',
-                        template="plotly_dark")
-    fig_map.update_traces(textposition="top center")
-    fig_map.update_layout(
-        title="Origin airports with number of departing flights and percentage of delayed flights\
-                <br><sup>Size indicates the number of departing flights</sup>\
-                <sup>Maintain the mouse in an airport to obtain its full information</sup>",
-        legend_title="Causa del Retraso")
-
-    return fig_map
-    
-@app.callback(
     Output('pie-main', 'figure'),
-    [Input('map-main', 'hoverData'),
-    Input("range-slider-main", "value")])
-def update_pie(hoverdata, value):
+    Input('map-main', 'hoverData'))
+def update_pie(hoverdata):
     # Pie Chart
     airport = hoverdata['points'][0]['text']
-
-    df_subplot1 = df_delayed[df_delayed["DATE"].dt.month.isin(list(range(value[0],value[1]+1)))]
-    dff = df[df["DATE"].dt.month.isin(list(range(value[0], value[1]+1)))]
-    df_subplot2 = dff[variables_strictly_needed2].groupby("ORIGIN_AIRPORT").mean().round(3)
-    df_subplot2["FLIGHTS"] = dff.groupby("ORIGIN_AIRPORT").size()
-    df_subplot2["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby("ORIGIN_AIRPORT").size()
-    df_subplot2["DELAYED_PERCENTAGE"] = df_subplot2["DELAYED_FLIGHTS"]/df_subplot2["FLIGHTS"]
-    df_subplot2 = df_subplot2.reset_index() 
-
     fig_pie = make_subplots(rows=1, cols=2, subplot_titles= ["Delayed Flights by Main Cause","Average Delay Distribution"],
                     specs=[[{"type": "pie"}, {"type": "pie"}]], horizontal_spacing = 0.03, vertical_spacing = 0.03)
+
     #subplot 1
-    values1 = df_subplot1[df_subplot1["ORIGIN_AIRPORT"]==airport]["MAIN_DELAY_CAUSE"].value_counts().reindex(delay_labels)
+    values1 = df_delayed[df_delayed["ORIGIN_AIRPORT"]==airport]["MAIN_DELAY_CAUSE"].value_counts().reindex(delay_labels)
     fig_pie.add_trace(go.Pie(labels=values1.index, values=values1, direction ='clockwise', marker_colors=px.colors.qualitative.Vivid, 
                                 hole=.3, title ='{:,}<br>delayed<br>flights'.format(values1.sum()),
                                 hoverinfo='label+percent', textinfo='value'), row=1, col=1)
+
     #subplot 2
-    values2 = df_subplot2[delay_labels].iloc[df_subplot2[df_subplot2["ORIGIN_AIRPORT"]==airport].index[0]]
+    values2 = df_airports[delay_labels].iloc[df_airports[df_airports["ORIGIN_AIRPORT"]==airport].index[0]]
     fig_pie.add_trace(go.Pie(labels=values2.index, values=values2, direction ='clockwise', marker_colors=px.colors.qualitative.Vivid, 
                                 hole=.3, title = "%.3f <br> seconds" % (values2.sum()),
                                 hoverinfo='label+percent', textinfo='value'), row=1, col=2)
-    # layout
-    fig_pie.update_layout(title_text="Delayed Flights Analysis in %s" % (airport),
+
+    fig_pie.update_layout(title_text="Airport: %s" % (airport),
                     legend_title="Delay Cause", template="plotly_dark",
                     legend=dict(orientation="h", y=0, x =-0.04))
     fig_pie.update_annotations(yshift=-10)
-
     return fig_pie
 
 @app.callback(
     Output('bar-main', 'figure'),
-    [Input('map-main', 'hoverData'),
-    Input("range-slider-main", "value")])
-def update_bar(hoverdata, value):    
+    Input('map-main', 'hoverData'))
+def update_bar(hoverdata):    
     airport = hoverdata['points'][0]['text']
     df_dest = df[df["ORIGIN_AIRPORT"]==airport].groupby(variables_to_group_by2)[["ARRIVAL_DELAY"]].count()
     df_dest["DELAYED_FLIGHTS"] = df[(df["ARRIVAL_DELAY"]>0) & (df["ORIGIN_AIRPORT"]==airport)].groupby(variables_to_group_by2).size()
