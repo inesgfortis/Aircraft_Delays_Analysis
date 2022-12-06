@@ -32,7 +32,7 @@ MONTH = {1: 'Janauary', 2:'February',3:'March',4:'April',5:'May',6:'June',
 
 
 ## Dash
-dash.register_page(__name__, name = "dashAirportsContent")
+dash.register_page(__name__, path = "/", name = "Airports")
 
 
 ########################################################################################################################

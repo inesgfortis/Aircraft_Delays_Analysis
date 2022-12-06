@@ -1,24 +1,15 @@
-# Importamos las librerias mínimas necesarias
-# import pandas as pd
-# import numpy as np
-# import pickle
-import os
 
-# import plotly.graph_objects as go
+
+# Importamos las librerias mínimas necesarias
+import os
 import dash
 from dash import Input, Output, html, callback, ctx
-# from datetime import date,datetime, timedelta
-
 import dash_bootstrap_components as dbc
-# import plotly.express as px
-# import logging
-
 from PIL import Image
 
 
-
 ## Dash
-dash.register_page(__name__, path = "/",name = "dashAirlinesContent")
+dash.register_page(__name__,name = "Airlines")
 
 
 ########################################################################################################################
@@ -88,19 +79,19 @@ layout = [
                 dbc.Col(
                     [
                         html.P("Expected [30-60]min delayed flights"),
-                        dbc.Input(type="number", min=0, max=300, step=1),
+                        dbc.Input(type="number", value =0, min=0, step=50, id="delayed-flighs-type-I",),
         
                     ],
 
-                    id="delayed-flighs-type-I",
+                    
                 ), 
 
                 dbc.Col(
                     [
                         html.P("Expected [<1h] delayed flights"),
-                        dbc.Input(type="number", min=0, max=300, step=1),
+                        dbc.Input(type="number", value =0,min=0,step=50,id="delayed-flighs-type-II"),
                     ],
-                    id="delayed-flighs-type-II",
+                    
                 ),
                 
                 
@@ -129,7 +120,7 @@ layout = [
 
             dbc.Row(
                 [
-                    dbc.Col([html.H5("Amount Due:"),]),
+                    dbc.Col([html.H5(id="amount-due"),]),
                     #dbc.Col([dbc.Button("Calculate", color="warning", className="mt-auto")]),
                 ],
                 style = {
@@ -145,35 +136,37 @@ layout = [
 
 
 ########################################################################################################################
-# FUNCTIONS
-########################################################################################################################
-
-
-
-
-########################################################################################################################
 # CALLBACKS
 ########################################################################################################################
 
-# @callback(
-#     Output('container-button-timestamp', 'children'),
-#     Input('short-button', 'n_clicks'),
-#     Input('mid-button', 'n_clicks'),
-#     Input('long-button', 'n_clicks'),
-#     Input('delayed-flighs-type-I', 'value'),
-#     Input('delayed-flighs-type-II', 'value')
-# )
-# def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
-#     if "short-button" == ctx.triggered_id:
-#         fine = 5000*delays_type_I+7500*delays_type_II
-#     elif "mid-button" == ctx.triggered_id:
-#         fine = 10000*delays_type_I+20000*delays_type_II
+# Callback para cel cálculo de la multa
+@callback(
+    Output('amount-due', 'children'),
+    Input('short-button', 'n_clicks'),
+    Input('mid-button', 'n_clicks'),
+    Input('long-button', 'n_clicks'),
+    Input('delayed-flighs-type-I', 'value'),
+    Input('delayed-flighs-type-II', 'value')
+)
+def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
+    """
+    Parameters:
+      -  btn1, btn2, btn3: corresponden con los botones para calcular la multa el función del tipo de trayecto
+      -  delays_type_I,delays_type_II: int numero de vuelos retrasados. Type I entre (30-60)mins y Type II >1h
 
-#     elif "long-button" == ctx.triggered_id:
-#         fine = 20000*delays_type_I+40000*delays_type_II
-#     return "$"+str(fine)
+    Output:
+      -  msg: str indica el importe de la multa en función de la distancia y tiempo de retraso y el número de retrasos
 
+    """
 
+    if "short-button" == ctx.triggered_id:
+        fine = 5000*delays_type_I+7500*delays_type_II
+    elif "mid-button" == ctx.triggered_id:
+        fine = 10000*delays_type_I+20000*delays_type_II
 
-
-
+    elif "long-button" == ctx.triggered_id:
+        fine = 20000*delays_type_I+40000*delays_type_II
+    else:
+        fine = 0
+    msg = "Amount due: $"+str(fine)
+    return msg

@@ -12,7 +12,6 @@ from datetime import date,datetime, timedelta
 import dash_bootstrap_components as dbc
 from dash import dcc
 import plotly.express as px
-# import logging
 
 
 ## Data Forecast
@@ -27,7 +26,7 @@ modelo_forecast_5 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_mod
 
 ## Dash
 #app = dash.Dash(external_stylesheets=[dbc.themes.LUX])
-dash.register_page(__name__, name = "dashForecastContent")
+dash.register_page(__name__, name = "Forecast")
 
 
 ########################################################################################################################
@@ -43,6 +42,7 @@ layout = [
                 [
                     dbc.Card([
                         dbc.Label("Airports"),
+
                         dcc.Dropdown(
                             id="airport",
                             options =[
@@ -51,12 +51,18 @@ layout = [
                             # Inicialización por defecto:
                             value=str(airports_forecast[0]),
                         ),
-                    ]),
+                    ],style = {
+                        "padding-top": "2%",
+                        "padding-left": "4%",
+                        "padding-right": "4%",
+                        "padding-bottom": "2%",
+                        },
+                    ),
                 ], id="airports-forecast", 
                 style = {
-                    "width":"100%",
+                    "width":"70%",
+                    "height": "100%",
                     "vertical-align": "center",
-                    #"padding-left": "5%",
                     "padding-top": "2%",
                 },          
             ),
@@ -64,7 +70,7 @@ layout = [
             dbc.Col(
                 [
                     dbc.Card([
-                        dbc.Label("Forecast dates"),
+                        dbc.Col(dbc.Label("Forecast dates")),
                         dcc.DatePickerRange(
                             id="picker-fechas",
                             month_format='MMMM Y',
@@ -73,12 +79,20 @@ layout = [
                             start_date=date(2016, 1, 1),
                             end_date=date(2016, 1, 15),
                             min_date_allowed = "2016-1-1", 
-                            max_date_allowed = "2016-1-31", 
+                            max_date_allowed = "2016-1-31",
                         ),
-                    ]),
+                    ],style = {
+                        "padding-top": "2%",
+                        "padding-left": "4%",
+                        "padding-right": "4%",
+                        "padding-bottom": "2%",
+                        },
+                    
+                    ),
                 ], id="fechas-forecast",
                 style = {
-                    "width":"100%",
+                    "width":"70%",
+                    "height": "100%",
                     "vertical-align": "center",
                     "padding-left": "2%",
                     "padding-top": "2%",
@@ -94,7 +108,7 @@ layout = [
         ], style = {
                 "width":"100%",
                 "vertical-align": "center",
-                "padding-top": "4%",
+                "padding-top": "2%",
         },
     
     ),
@@ -108,7 +122,17 @@ layout = [
 ########################################################################################################################
 
 def filter_forecast(airport):
-    # Recibe un aeropuerto de origen y devuelve el dataframe y modelo corresondiente a dicho aeropuerto
+    # 
+    """
+    Recibe un aeropuerto de origen y devuelve el dataframe y modelo corresondiente a dicho aeropuerto
+    Parameters:
+      -  airport: str aeropuerto de origen seleccionado en el dash mediante un desplegable
+
+    Output:
+      -  data_df: dataframe con los datos correspondientes a dicho aeropuerto
+      -  modelo_forecast: mejor modelo dado el aeropuerto seleccionado
+
+    """
  
     data_df = data_forecast[data_forecast['ORIGIN_AIRPORT'] == airport]
 
@@ -128,6 +152,17 @@ def filter_forecast(airport):
 
 
 def graph_figure_forecast(data,model,start_date,end_date):
+
+    """
+    Parameters:
+      -  data_df: dataframe con los datos correspondientes al aeropuerto seleccionado en el filtro del dash
+      -  modelo_forecast: mejor modelo dado el aeropuerto seleccionado
+      -  start_date, end_date: rango de fechas inicio y fin para el forecast
+
+    Output:
+      -  fig: crea un gráfico con los datos históricos del aeropuerto y los datos de forecast para las fechas seleccionadas
+
+    """
 
     start_date = pd.to_datetime(start_date,format = "%Y-%m-%d")
     end_date = pd.to_datetime(end_date,format = "%Y-%m-%d")
@@ -161,7 +196,7 @@ def graph_figure_forecast(data,model,start_date,end_date):
 ########################################################################################################################
 
 
-#callback para seleccionar modelo y predecir devolviendo el gráfico de forecast
+# Callback para seleccionar modelo y predecir devolviendo el gráfico de forecast
 @callback(
     Output("graph-forecast", "figure"),
     Input('airport', 'value'),
@@ -171,6 +206,16 @@ def graph_figure_forecast(data,model,start_date,end_date):
 
 def update_forecast_graph(airport,start_date,end_date):
     """
+    Selecciona los datos y el modelo del aeropuerto mediante la función filter_forecast, se los pasa a la función
+    encargada de representar el gráfico con los datos históricos y el forecast y los muestra
+
+    Parameters:
+      -  airport: str aeropuerto de origen seleccionado en el dash mediante un desplegable
+      -  start_date, end_date: rango de fechas inicio y fin para el forecast
+
+    Output:
+      -  go.Figure(): scatter que muestra los datos históricos del aeropuerto y los datos de forecast para las fechas seleccionadas
+
     """
 
     data_df,modelo_forecast = filter_forecast(airport)
