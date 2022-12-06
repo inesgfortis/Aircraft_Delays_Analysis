@@ -7,9 +7,12 @@ from dash import Input, Output, dcc, html, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import logging
+from plotly.subplots import make_subplots
 
 # Leemos las bases de datos
-df_airports = pd.read_parquet("EDA/df_airports.parquet")
+
+df = pd.read_parquet("Preprocessing/flightsFilteredCleaned.parquet")
+
 # df_flights = pd.read_parquet("../EDA/df_flights.parquet")
 # df_airports_date = pd.read_parquet("../EDA/df_airports_date.parquet")
 
