@@ -202,7 +202,7 @@ def update_pie(hoverdata, dateRange, distanceRange):
     fig_pie.update_layout(title_text="Delayed Flights Analysis in %s" % (airport),
                     legend_title="Delay Cause", template="plotly_dark",
                     legend=dict(orientation="h", y=0, x =0), margin=dict(l=20, r=20, t=60, b=20))
-    fig_pie.update_annotations(yshift=-10)
+    fig_pie.update_annotations(yshift=-5)
 
     return fig_pie
 
