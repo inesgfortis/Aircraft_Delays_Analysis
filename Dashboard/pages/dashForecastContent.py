@@ -183,6 +183,9 @@ def graph_figure_forecast(data,model,start_date,end_date):
     data_pred['ds'] = [start_date+timedelta(days=d) for d in range((end_date - start_date).days +1)] 
     data_pred['predictions'] = list(predictions)
 
+    # convertimos las predicciones a enteros
+    data_pred['predictions'] = data_pred['predictions'].round(0).astype(int)
+
 
     fig = go.Figure()
 
