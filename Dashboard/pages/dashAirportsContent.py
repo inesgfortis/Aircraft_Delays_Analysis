@@ -1,6 +1,6 @@
 # Importamos las librerias mínimas necesarias
 import pandas as pd
-# import numpy as np
+import numpy as np
 # import pickle
 # import os
 
@@ -16,6 +16,8 @@ import plotly.express as px
 
 ## DATA
 df = pd.read_parquet("Preprocessing/flightsFilteredCleaned.parquet")
+## Needed modification
+df['DELAYED_FLIGHTS'] = np.where(df['ARRIVAL_DELAY'] > 0, 1, 0)
 
 # Needed constants
 delay_labels = ["AIR_SYSTEM_DELAY","SECURITY_DELAY","AIRLINE_DELAY","LATE_AIRCRAFT_DELAY","WEATHER_DELAY","OTHER_DELAY"]
@@ -92,9 +94,12 @@ layout = [
 def update_map(value1, value2):    
     dff = df[(df["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
              (df["DISTANCE"]>=value2[0]) & (df["DISTANCE"]<=value2[1])]
-    df_map = dff[variables_strictly_needed].groupby(variables_to_group_by).mean()
-    df_map["FLIGHTS"] = dff.groupby(variables_to_group_by).size()
-    df_map["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby(variables_to_group_by).size()
+    df_map = dff.groupby(variables_to_group_by)\
+             .agg({'ARRIVAL_DELAY':'mean','AIR_SYSTEM_DELAY':'mean',
+                    'SECURITY_DELAY':'mean','AIRLINE_DELAY':'mean','LATE_AIRCRAFT_DELAY':'mean',
+                    'WEATHER_DELAY':'mean','OTHER_DELAY':'mean', 'ORIGIN_LATITUDE':'mean',
+                    'ORIGIN_LONGITUDE':'mean', 'FLIGHT_NUMBER':'count', 'DELAYED_FLIGHTS':'sum'})
+    df_map = df_map.rename(columns={"FLIGHT_NUMBER": "FLIGHTS"})
     df_map["DELAYED_PERCENTAGE"] = df_map["DELAYED_FLIGHTS"]/df_map["FLIGHTS"]
     df_map = df_map.reset_index() 
 
@@ -112,7 +117,7 @@ def update_map(value1, value2):
         title="Origin airports with number of departing flights and percentage of delayed flights\
                 <br><sup>Size indicates the number of departing flights</sup>\
                 <sup>Maintain the mouse in an airport to obtain its full information</sup>",
-        legend_title="Causa del Retraso")
+        legend_title="Causa del Retraso", margin=dict(l=20, r=20, t=60, b=20))
     fig_map.update_coloraxes(colorbar_tickformat = ',.2%', colorbar_title="Delayed Flights %")
         
     return fig_map
@@ -131,13 +136,16 @@ def update_pie(hoverdata, value1,value2):
              (df_delayed["DISTANCE"]>=value2[0]) & (df_delayed["DISTANCE"]<=value2[1])]
     dff = df[(df["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
              (df["DISTANCE"]>=value2[0]) & (df["DISTANCE"]<=value2[1])]
-    df_subplot2 = dff[variables_strictly_needed2].groupby("ORIGIN_AIRPORT").mean().round(3)
-    df_subplot2["FLIGHTS"] = dff.groupby("ORIGIN_AIRPORT").size()
-    df_subplot2["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby("ORIGIN_AIRPORT").size()
+    df_subplot2 = dff.groupby(variables_to_group_by)\
+             .agg({'ARRIVAL_DELAY':'mean','AIR_SYSTEM_DELAY':'mean',
+                    'SECURITY_DELAY':'mean','AIRLINE_DELAY':'mean','LATE_AIRCRAFT_DELAY':'mean',
+                    'WEATHER_DELAY':'mean','OTHER_DELAY':'mean', 'ORIGIN_LATITUDE':'mean',
+                    'ORIGIN_LONGITUDE':'mean', 'FLIGHT_NUMBER':'count', 'DELAYED_FLIGHTS':'sum'}).round(3)
+    df_subplot2 = df_subplot2.rename(columns={"FLIGHT_NUMBER": "FLIGHTS"})
     df_subplot2["DELAYED_PERCENTAGE"] = df_subplot2["DELAYED_FLIGHTS"]/df_subplot2["FLIGHTS"]
     df_subplot2 = df_subplot2.reset_index() 
-
-    fig_pie = make_subplots(rows=1, cols=2, subplot_titles= ["Delayed Flights by Main Cause","Average Delay Distribution"],
+    
+    fig_pie = make_subplots(rows=1, cols=2, subplot_titles= ["Main Causes","Average Delay Distribution"],
                     specs=[[{"type": "pie"}, {"type": "pie"}]], horizontal_spacing = 0.03, vertical_spacing = 0.03)
     #subplot 1
     values1 = df_subplot1[df_subplot1["ORIGIN_AIRPORT"]==airport]["MAIN_DELAY_CAUSE"].value_counts().reindex(delay_labels)
@@ -152,7 +160,7 @@ def update_pie(hoverdata, value1,value2):
     # layout
     fig_pie.update_layout(title_text="Delayed Flights Analysis in %s" % (airport),
                     legend_title="Delay Cause", template="plotly_dark",
-                    legend=dict(orientation="h", y=0, x =-0.04))
+                    legend=dict(orientation="h", y=0, x =0), margin=dict(l=20, r=20, t=60, b=20))
     fig_pie.update_annotations(yshift=-10)
 
     return fig_pie
