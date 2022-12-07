@@ -28,7 +28,8 @@ variables_strictly_needed2 = ["AIR_SYSTEM_DELAY","SECURITY_DELAY","AIRLINE_DELAY
 variables_strictly_needed = ["ORIGIN_AIRPORT","ORIGIN_AIRPORT_NAME","ORIGIN_CITY","ORIGIN_STATE","ARRIVAL_DELAY","ORIGIN_LATITUDE","ORIGIN_LONGITUDE"]
 MONTH = {1: 'Janauary', 2:'February',3:'March',4:'April',5:'May',6:'June',
 		 7:'July',8:'August',9:'September',10:'October',11:'November', 12:'December'}
-
+min_range = df["DISTANCE"].min()
+max_range = df["DISTANCE"].max()
 
 
 ## Dash
@@ -40,20 +41,20 @@ dash.register_page(__name__, path = "/", name = "Airports")
 ########################################################################################################################
 
 layout = [
-        dbc.Row(dbc.Col(html.H2('AIRPORTS ANALYSIS', className='text-center text-primary, mb-3'))),  # header row
+        dbc.Row(dbc.Col(html.H2('AIRPORTS INFORMATION', className='text-center text-primary, mb-3'))),  # header row
         
         dbc.Row([  # start of second row
             dbc.Col([  # first column on second row
                 html.H5('Map', className='text-center'),
                 dcc.Graph(id='map-main',
                         hoverData={"points": [{"text": "ATL"}]},
-                        style={'height':600}),
+                        style={'height':550}),
                 html.Hr(),
             ], width={'size': 7, 'offset': 0, 'order': 1}),  # width first column on second row
             dbc.Col([  # second column on third row
                 html.H5('Distribution', className='text-center'),
                 dcc.Graph(id='pie-main',
-                      style={'height':600}),
+                      style={'height':550}),
                 html.Hr(),
             ], width={'size': 5, 'offset': 0, 'order': 2}),  # width second column on second row
         ]),  # end of second row 
@@ -64,9 +65,14 @@ layout = [
                       style={'height':500}),
             ], width={'size': 7, 'offset': 0, 'order': 1}),
             dbc.Col([  # second column on third row
-                    html.H5('Filters', className='text-center'),
+                    html.Br(),
+                    html.H5('Flights Filters', className='text-center'),
+                    html.Br(),
                     dbc.Label("Date"),
                     dcc.RangeSlider(1, 12, 1, marks=MONTH, value=[1,12], id="range-slider-main"),
+                    html.Br(),
+                    dbc.Label("Distance"),
+                    dcc.RangeSlider(min_range, max_range, value=[min_range,max_range], id="distance-slider-main"),
                     html.Hr(),
                 ], width={'size': 5, 'offset': 0, 'order': 2}) 
         ]),  # end of third row  
@@ -80,10 +86,12 @@ layout = [
 
 @callback(
     Output('map-main', 'figure'),
-    [Input("range-slider-main", "value")])
+    [Input("range-slider-main", "value"), 
+     Input("distance-slider-main", "value")])
 
-def update_map(value):    
-    dff = df[df["DATE"].dt.month.isin(list(range(value[0],value[1]+1)))]
+def update_map(value1, value2):    
+    dff = df[(df["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
+             (df["DISTANCE"]>=value2[0]) & (df["DISTANCE"]<=value2[1])]
     df_map = dff[variables_strictly_needed].groupby(variables_to_group_by).mean()
     df_map["FLIGHTS"] = dff.groupby(variables_to_group_by).size()
     df_map["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby(variables_to_group_by).size()
@@ -96,7 +104,7 @@ def update_map(value):
                         color= "DELAYED_PERCENTAGE", # which column to use to set the color of markers
                         scope="usa",
                         text = "ORIGIN_AIRPORT",
-                        hover_data  = ["ORIGIN_CITY"],
+                        hover_data  = ["ORIGIN_CITY", "ORIGIN_AIRPORT_NAME"],
                         color_continuous_scale='RdYlGn_r',
                         template="plotly_dark")
     fig_map.update_traces(textposition="top center")
@@ -105,21 +113,24 @@ def update_map(value):
                 <br><sup>Size indicates the number of departing flights</sup>\
                 <sup>Maintain the mouse in an airport to obtain its full information</sup>",
         legend_title="Causa del Retraso")
+    fig_map.update_coloraxes(colorbar_tickformat = ',.2%', colorbar_title="Delayed Flights %")
         
     return fig_map
     
 @callback(
     Output('pie-main', 'figure'),
     [Input('map-main', 'hoverData'),
-    Input("range-slider-main", "value")])
+    Input("range-slider-main", "value"), 
+    Input("distance-slider-main", "value")])
 
-
-def update_pie(hoverdata, value):
+def update_pie(hoverdata, value1,value2):
     # Pie Chart
     airport = hoverdata['points'][0]['text']
 
-    df_subplot1 = df_delayed[df_delayed["DATE"].dt.month.isin(list(range(value[0],value[1]+1)))]
-    dff = df[df["DATE"].dt.month.isin(list(range(value[0], value[1]+1)))]
+    df_subplot1 = df_delayed[(df_delayed["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
+             (df_delayed["DISTANCE"]>=value2[0]) & (df_delayed["DISTANCE"]<=value2[1])]
+    dff = df[(df["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
+             (df["DISTANCE"]>=value2[0]) & (df["DISTANCE"]<=value2[1])]
     df_subplot2 = dff[variables_strictly_needed2].groupby("ORIGIN_AIRPORT").mean().round(3)
     df_subplot2["FLIGHTS"] = dff.groupby("ORIGIN_AIRPORT").size()
     df_subplot2["DELAYED_FLIGHTS"] = dff[dff["ARRIVAL_DELAY"]>0].groupby("ORIGIN_AIRPORT").size()
@@ -149,12 +160,15 @@ def update_pie(hoverdata, value):
 @callback(
     Output('bar-main', 'figure'),
     [Input('map-main', 'hoverData'),
-    Input("range-slider-main", "value")])
+    Input("range-slider-main", "value"), 
+    Input("distance-slider-main", "value")])
 
-def update_bar(hoverdata, value):    
+def update_bar(hoverdata, value1, value2):    
     airport = hoverdata['points'][0]['text']
-    df_dest = df[df["ORIGIN_AIRPORT"]==airport].groupby(variables_to_group_by2)[["ARRIVAL_DELAY"]].count()
-    df_dest["DELAYED_FLIGHTS"] = df[(df["ARRIVAL_DELAY"]>0) & (df["ORIGIN_AIRPORT"]==airport)].groupby(variables_to_group_by2).size()
+    dff = df[(df["DATE"].dt.month.isin(list(range(value1[0],value1[1]+1)))) &
+             (df["DISTANCE"]>=value2[0]) & (df["DISTANCE"]<=value2[1])]
+    df_dest = dff[dff["ORIGIN_AIRPORT"]==airport].groupby(variables_to_group_by2)[["ARRIVAL_DELAY"]].count()
+    df_dest["DELAYED_FLIGHTS"] = dff[(dff["ARRIVAL_DELAY"]>0) & (dff["ORIGIN_AIRPORT"]==airport)].groupby(variables_to_group_by2).size()
     df_dest["DELAYED_PERCENTAGE"] = (df_dest["DELAYED_FLIGHTS"]/df_dest["ARRIVAL_DELAY"]).round(4)
     df_dest = df_dest.sort_values("ARRIVAL_DELAY",ascending=False).reset_index()
     df_dest = df_dest.head(10)
