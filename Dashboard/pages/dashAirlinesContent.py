@@ -168,5 +168,5 @@ def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
         fine = 20000*delays_type_I+40000*delays_type_II
     else:
         fine = 0
-    msg = "Amount due: $"+str(fine)
+    msg = "Amount due: $"+'{:,}'.format(fine)
     return msg
