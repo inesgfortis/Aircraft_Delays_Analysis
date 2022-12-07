@@ -58,7 +58,7 @@ layout = [
                         "padding-top": "2%",
                         "padding-left": "4%",
                         "padding-right": "4%",
-                        "padding-bottom": "2%",
+                        "padding-bottom": "4%",
                         },
                     ),
                 ], id="airports-forecast", 
@@ -66,8 +66,7 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-left": "2%",
-                    "padding-top": "2%",
+
                 },          
             ),
             # Filtro fechas
@@ -98,13 +97,15 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-left": "2%",
-                    "padding-right": "2%",
-                    "padding-top": "2%",
+                    "padding-left": "1%",
                 },          
             ),
             
-        ],
+        ],style = {
+                    "padding-left": "4%",
+                    "padding-right": "4%",
+                    "padding-top": "2%",
+                },  
     ),
 
     dbc.Row(
@@ -113,8 +114,8 @@ layout = [
         ], style = {
                 "width":"100%",
                 "vertical-align": "center",
-                "padding-left": "2%",
-                "padding-right": "2%",
+                "padding-left": "4%",
+                "padding-right": "4%",
                 "padding-top": "2%",
         },
     
@@ -181,6 +182,9 @@ def graph_figure_forecast(data,model,start_date,end_date):
     data_pred = pd.DataFrame()
     data_pred['ds'] = [start_date+timedelta(days=d) for d in range((end_date - start_date).days +1)] 
     data_pred['predictions'] = list(predictions)
+
+    # convertimos las predicciones a enteros
+    data_pred['predictions'] = data_pred['predictions'].round(0).astype(int)
 
 
     fig = go.Figure()
