@@ -60,8 +60,17 @@ layout = [
                     ], 
                 ),
             ), 
-        ])
+        ], style ={"padding-top": "2%","padding-left": "4%","padding-right": "4%"}
+        )
     ),
+     dbc.Row(
+        [
+            html.P("IMPORTANT NOTE: Flights delayed [30-60] min must refund 50% of the ticket price to passengers, and those delayed by more than 1h must refund 100%")
+        ], style ={"padding-top": "2%","padding-left": "4%","padding-right": "4%",
+
+        }
+     
+     ),
 
     dbc.Row([
         dbc.Col(
@@ -70,7 +79,6 @@ layout = [
                 style = {
                     "width":"20%",
                     "vertical-align": "center",
-                    "padding-top": "4%",
                 },
             md=4),
 
@@ -98,7 +106,6 @@ layout = [
             ], style = {
                         "width":"70%",
                         "vertical-align": "center",
-                        "padding-top": "4%",
                 },
             
             
@@ -121,17 +128,18 @@ layout = [
             dbc.Row(
                 [
                     dbc.Col([html.H5(id="amount-due"),]),
-                    dbc.Col([html.H5(id="Reimbursement:-due"),]),
+                    dbc.Col([html.H5(id="reimbursement"),]),
                     #dbc.Col([dbc.Button("Calculate", color="warning", className="mt-auto")]),
                 ],
                 style = {
-                        "width":"70%",
+                        "width":"47%",
                         "vertical-align": "center",
                         "padding-top": "4%",
                 },
             ),
         ]),
-    ])
+    ], style ={"padding-top": "2%","padding-left": "4%","padding-right": "4%" }
+    )
 ]
 
 
@@ -143,6 +151,7 @@ layout = [
 # Callback para cel cálculo de la multa
 @callback(
     Output('amount-due', 'children'),
+    Output('reimbursement', 'children'),
     Input('short-button', 'n_clicks'),
     Input('mid-button', 'n_clicks'),
     Input('long-button', 'n_clicks'),
@@ -157,18 +166,29 @@ def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
 
     Output:
       -  msg: str indica el importe de la multa en función de la distancia y tiempo de retraso y el número de retrasos
+      -  msg2: str indica el importe a pargar a los pasajeros en función del tiempo de retraso y el número de retrasos
 
     """
-    
+    AVG_PASSENGERS = 140
+    AVG_TICKET_SHORT = 0.7*430 # $301
+    AVG_TICKET_MID = 430
+    AVG_TICKET_LONG = 1.3*430
+
     if "short-button" == ctx.triggered_id:
         fine = 5000*delays_type_I+7500*delays_type_II
+        reimbursement = AVG_PASSENGERS*(0.5*AVG_TICKET_SHORT*delays_type_I+AVG_TICKET_SHORT*delays_type_II)
+
     elif "mid-button" == ctx.triggered_id:
         fine = 10000*delays_type_I+20000*delays_type_II
-
+        reimbursement = AVG_PASSENGERS*(0.5*AVG_TICKET_MID*delays_type_I+AVG_TICKET_MID*delays_type_II)
     elif "long-button" == ctx.triggered_id:
         fine = 20000*delays_type_I+40000*delays_type_II
+        reimbursement = AVG_PASSENGERS*(0.5*AVG_TICKET_LONG*delays_type_I+AVG_TICKET_LONG*delays_type_II)
     else:
         fine = 0
+        reimbursement = 0
 
-    msg = "Amount due: $"+'{:,}'.format(fine)
-    return msg
+    msg  = "Amount due: $"+'{:,}'.format(fine)
+    msg2 = "Reimbursement: $"+'{:,}'.format(reimbursement)
+    
+    return msg,msg2
