@@ -17,6 +17,7 @@ import plotly.express as px
 ## Data Forecast
 data_forecast = pd.read_parquet(str(os.getcwd())+"\\Forecast\\forecast_data.parquet")
 airports_forecast = list(data_forecast['ORIGIN_AIRPORT'].unique())
+airports_name = list((data_forecast['ORIGIN_AIRPORT']+" | "+data_forecast['ORIGIN_AIRPORT_NAME']).unique())
 modelo_forecast_1 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_1.pickle"),'rb'))
 modelo_forecast_2 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_2.pickle"),'rb'))
 modelo_forecast_3 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_3.pickle"),'rb'))
@@ -47,7 +48,8 @@ layout = [
                         dcc.Dropdown(
                             id="airport",
                             options =[
-                                {"label": airport, "value": airport} for airport in list(data_forecast['ORIGIN_AIRPORT'].unique())
+                                #{"label": airport, "value": airport} for airport in list(data_forecast['ORIGIN_AIRPORT'].unique())
+                                {"label": name, "value": airport} for airport,name in zip(airports_forecast,airports_name)
                             ],
                             # Inicialización por defecto:
                             value=str(airports_forecast[0]),
@@ -64,6 +66,7 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
+                    "padding-left": "2%",
                     "padding-top": "2%",
                 },          
             ),
@@ -96,6 +99,7 @@ layout = [
                     "height": "100%",
                     "vertical-align": "center",
                     "padding-left": "2%",
+                    "padding-right": "2%",
                     "padding-top": "2%",
                 },          
             ),
@@ -109,6 +113,8 @@ layout = [
         ], style = {
                 "width":"100%",
                 "vertical-align": "center",
+                "padding-left": "2%",
+                "padding-right": "2%",
                 "padding-top": "2%",
         },
     

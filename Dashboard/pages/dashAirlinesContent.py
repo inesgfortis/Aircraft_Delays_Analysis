@@ -28,8 +28,8 @@ layout = [
                     [
                         html.H5("Short Flights", className="card-title",style={"color":"green"}),
                         html.P(html.Li("Delay <30mins: $0")),
-                        html.P(html.Li("Delay [30-60]min: $5.000")), 
-                        html.P(html.Li("Delay >1h: $7.500")),  
+                        html.P(html.Li("Delay [30-60]min: $5,000")), 
+                        html.P(html.Li("Delay >1h: $7,500")),  
                         #dbc.Button("Calculate", color="success", className="mt-auto"),
                     ]
                 )
@@ -41,8 +41,8 @@ layout = [
                     [
                         html.H5("Mid Flights", className="card-title", style={"color":"#ffc107"}),
                         html.P(html.Li("Delay <30mins: $0")),
-                        html.P(html.Li("Delay [30-60]min: $10.000")), 
-                        html.P(html.Li("Delay >1h: $20.000")),  
+                        html.P(html.Li("Delay [30-60]min: $10,000")), 
+                        html.P(html.Li("Delay >1h: $20,000")),  
                         #dbc.Button("Calculate", color="warning", className="mt-auto"),
                     ]
                 )
@@ -54,8 +54,8 @@ layout = [
                     [
                         html.H5("Long flights", className="card-title",style={"color":"red"}),
                         html.P(html.Li("Delay <30mins: $0")),
-                        html.P(html.Li("Delay [30-60]min: $20.000")), 
-                        html.P(html.Li("Delay >1h: $40.000")),  
+                        html.P(html.Li("Delay [30-60]min: $20,000")), 
+                        html.P(html.Li("Delay >1h: $40,000")),  
                         #dbc.Button("Calculate", color="danger", className="mt-auto"),
                     ], 
                 ),
@@ -121,6 +121,7 @@ layout = [
             dbc.Row(
                 [
                     dbc.Col([html.H5(id="amount-due"),]),
+                    dbc.Col([html.H5(id="Reimbursement:-due"),]),
                     #dbc.Col([dbc.Button("Calculate", color="warning", className="mt-auto")]),
                 ],
                 style = {
@@ -158,7 +159,7 @@ def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
       -  msg: str indica el importe de la multa en función de la distancia y tiempo de retraso y el número de retrasos
 
     """
-
+    
     if "short-button" == ctx.triggered_id:
         fine = 5000*delays_type_I+7500*delays_type_II
     elif "mid-button" == ctx.triggered_id:
@@ -168,5 +169,6 @@ def displayFine(btn1, btn2, btn3,delays_type_I,delays_type_II):
         fine = 20000*delays_type_I+40000*delays_type_II
     else:
         fine = 0
-    msg = "Amount due: $"+str(fine)
+
+    msg = "Amount due: $"+'{:,}'.format(fine)
     return msg
