@@ -17,6 +17,7 @@ import plotly.express as px
 ## Data Forecast
 data_forecast = pd.read_parquet(str(os.getcwd())+"\\Forecast\\forecast_data.parquet")
 airports_forecast = list(data_forecast['ORIGIN_AIRPORT'].unique())
+airports_name = list((data_forecast['ORIGIN_AIRPORT']+" | "+data_forecast['ORIGIN_AIRPORT_NAME']).unique())
 modelo_forecast_1 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_1.pickle"),'rb'))
 modelo_forecast_2 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_2.pickle"),'rb'))
 modelo_forecast_3 = pickle.load(open(str(os.getcwd())+str("\\Forecast\\final_model_3.pickle"),'rb'))
@@ -35,7 +36,7 @@ dash.register_page(__name__, name = "Forecast")
 
 
 layout = [
-    dbc.Row(dbc.Col(html.H2('FORECASTED DELAYED FLIGHTS', className='text-center text-primary, mb-3'))),
+    dbc.Row(dbc.Col(html.H2('FORECAST DELAYED FLIGHTS', className='text-center text-primary, mb-3'))),
     dbc.Row(
         [
             # Filtro aeropuerto
@@ -47,7 +48,8 @@ layout = [
                         dcc.Dropdown(
                             id="airport",
                             options =[
-                                {"label": airport, "value": airport} for airport in list(data_forecast['ORIGIN_AIRPORT'].unique())
+                                #{"label": airport, "value": airport} for airport in list(data_forecast['ORIGIN_AIRPORT'].unique())
+                                {"label": name, "value": airport} for airport,name in zip(airports_forecast,airports_name)
                             ],
                             # Inicialización por defecto:
                             value=str(airports_forecast[0]),
@@ -56,7 +58,7 @@ layout = [
                         "padding-top": "2%",
                         "padding-left": "4%",
                         "padding-right": "4%",
-                        "padding-bottom": "2%",
+                        "padding-bottom": "4%",
                         },
                     ),
                 ], id="airports-forecast", 
@@ -64,7 +66,7 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-top": "2%",
+
                 },          
             ),
             # Filtro fechas
@@ -95,12 +97,15 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-left": "2%",
-                    "padding-top": "2%",
+                    "padding-left": "1%",
                 },          
             ),
             
-        ],
+        ],style = {
+                    "padding-left": "4%",
+                    "padding-right": "4%",
+                    "padding-top": "2%",
+                },  
     ),
 
     dbc.Row(
@@ -109,6 +114,8 @@ layout = [
         ], style = {
                 "width":"100%",
                 "vertical-align": "center",
+                "padding-left": "4%",
+                "padding-right": "4%",
                 "padding-top": "2%",
         },
     
@@ -175,6 +182,9 @@ def graph_figure_forecast(data,model,start_date,end_date):
     data_pred = pd.DataFrame()
     data_pred['ds'] = [start_date+timedelta(days=d) for d in range((end_date - start_date).days +1)] 
     data_pred['predictions'] = list(predictions)
+
+    # convertimos las predicciones a enteros
+    data_pred['predictions'] = data_pred['predictions'].round(0).astype(int)
 
 
     fig = go.Figure()
