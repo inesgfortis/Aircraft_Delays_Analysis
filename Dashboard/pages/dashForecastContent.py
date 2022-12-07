@@ -58,7 +58,7 @@ layout = [
                         "padding-top": "2%",
                         "padding-left": "4%",
                         "padding-right": "4%",
-                        "padding-bottom": "2%",
+                        "padding-bottom": "4%",
                         },
                     ),
                 ], id="airports-forecast", 
@@ -66,8 +66,7 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-left": "2%",
-                    "padding-top": "2%",
+
                 },          
             ),
             # Filtro fechas
@@ -98,13 +97,15 @@ layout = [
                     "width":"70%",
                     "height": "100%",
                     "vertical-align": "center",
-                    "padding-left": "2%",
-                    "padding-right": "2%",
-                    "padding-top": "2%",
+                    "padding-left": "1%",
                 },          
             ),
             
-        ],
+        ],style = {
+                    "padding-left": "4%",
+                    "padding-right": "4%",
+                    "padding-top": "2%",
+                },  
     ),
 
     dbc.Row(
@@ -113,8 +114,8 @@ layout = [
         ], style = {
                 "width":"100%",
                 "vertical-align": "center",
-                "padding-left": "2%",
-                "padding-right": "2%",
+                "padding-left": "4%",
+                "padding-right": "4%",
                 "padding-top": "2%",
         },
     
